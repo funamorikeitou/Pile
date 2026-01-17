@@ -17,6 +17,7 @@ import {
   usePilesContext,
 } from 'renderer/context/PilesContext';
 import { useIndexContext } from 'renderer/context/IndexContext';
+import { useHighlightsContext } from 'renderer/context/HighlightsContext';
 import Post from '../Posts/Post';
 import TextareaAutosize from 'react-textarea-autosize';
 import Waiting from '../Toasts/Toast/Loaders/Waiting';
@@ -28,10 +29,17 @@ import VirtualList from '../Posts/VirtualList';
 
 const filterResults = (results, options) => {
   const filtered = results.filter((result) => {
-    // Filter by highlight
-    const highlightCondition = options.onlyHighlighted
-      ? result.highlight != null
-      : true;
+    // Filter by highlight type
+    let highlightCondition = true;
+    if (options.highlightType) {
+      if (options.highlightType === 'any') {
+        // Any highlight - just check if highlight exists
+        highlightCondition = result.highlight != null;
+      } else {
+        // Specific highlight type
+        highlightCondition = result.highlight === options.highlightType;
+      }
+    }
 
     // Filter by attachments
     const mediaCondition = options.hasAttachments
@@ -62,6 +70,7 @@ export default function Search() {
     setSearchOpen,
     vectorSearch,
   } = useIndexContext();
+  const { highlights } = useHighlightsContext();
   const [container, setContainer] = useState(null);
   const [ready, setReady] = useState(false);
   const [text, setText] = useState('');
@@ -69,7 +78,7 @@ export default function Search() {
   const [response, setResponse] = useState([]);
   const [options, setOptions] = useState({
     dateRange: '',
-    onlyHighlighted: false,
+    highlightType: null, // null = all, 'any' = any highlight, or specific type name
     notReplies: false,
     hasAttachments: false,
     sortOrder: 'relevance',
@@ -164,7 +173,7 @@ export default function Search() {
         </Dialog.Trigger>
         <Dialog.Portal container={container}>
           <Dialog.Overlay className={styles.DialogOverlay} />
-          <Dialog.Content className={styles.DialogContent}>
+          <Dialog.Content className={styles.DialogContent} aria-describedby={undefined}>
             <div className={styles.wrapper}>
               <Dialog.Title className={styles.DialogTitle}>
                 <InputBar
@@ -178,6 +187,7 @@ export default function Search() {
                   options={options}
                   setOptions={setOptions}
                   onSubmit={onSubmit}
+                  highlights={highlights}
                 />
               </Dialog.Title>
               {filtered && (

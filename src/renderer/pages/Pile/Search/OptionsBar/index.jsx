@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import {
   SettingsIcon,
   CrossIcon,
@@ -11,11 +12,28 @@ import {
   PaperclipIcon,
   HighlightIcon,
   RelevantIcon,
+  ChevronRightIcon,
 } from 'renderer/icons';
 import styles from './OptionsBar.module.scss';
 import * as Switch from '@radix-ui/react-switch';
 
-export default function OptionsBar({ options, setOptions, onSubmit }) {
+export default function OptionsBar({ options, setOptions, onSubmit, highlights }) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const highlightEntries = highlights ? Array.from(highlights.entries()) : [];
   const flipValue = (e) => {
     const key = e.target.name;
     setOptions((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -27,6 +45,23 @@ export default function OptionsBar({ options, setOptions, onSubmit }) {
 
   const toggleSearchMode = () => {
     setOptions((prev) => ({ ...prev, semanticSearch: !prev.semanticSearch }));
+  };
+
+  const selectHighlightType = (type) => {
+    setOptions((prev) => ({ ...prev, highlightType: type }));
+    setDropdownOpen(false);
+  };
+
+  const getHighlightButtonLabel = () => {
+    if (!options.highlightType) return 'All Types';
+    if (options.highlightType === 'any') return 'Any Highlight';
+    return options.highlightType;
+  };
+
+  const getHighlightColor = () => {
+    if (!options.highlightType || options.highlightType === 'any') return null;
+    const highlight = highlights?.get(options.highlightType);
+    return highlight?.color;
   };
 
   return (
@@ -60,16 +95,55 @@ export default function OptionsBar({ options, setOptions, onSubmit }) {
           ↓ Oldest
         </button>
         <div className={styles.sep}>•</div>
-        <button
-          className={`${styles.button} ${
-            options.onlyHighlighted && styles.active
-          }`}
-          name={'onlyHighlighted'}
-          onClick={flipValue}
-        >
-          <HighlightIcon className={styles.icon} />
-          Highlighted
-        </button>
+        <div className={styles.dropdown} ref={dropdownRef}>
+          <button
+            className={`${styles.button} ${
+              options.highlightType && styles.active
+            }`}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            {getHighlightColor() && (
+              <span
+                className={styles.highlightDot}
+                style={{ backgroundColor: getHighlightColor() }}
+              />
+            )}
+            {!getHighlightColor() && <HighlightIcon className={styles.icon} />}
+            {getHighlightButtonLabel()}
+            <ChevronRightIcon className={`${styles.chevron} ${dropdownOpen ? styles.open : ''}`} />
+          </button>
+          {dropdownOpen && (
+            <div className={styles.dropdownMenu}>
+              <button
+                className={`${styles.dropdownItem} ${!options.highlightType ? styles.selected : ''}`}
+                onClick={() => selectHighlightType(null)}
+              >
+                All Types
+              </button>
+              <button
+                className={`${styles.dropdownItem} ${options.highlightType === 'any' ? styles.selected : ''}`}
+                onClick={() => selectHighlightType('any')}
+              >
+                <HighlightIcon className={styles.icon} />
+                Any Highlight
+              </button>
+              <div className={styles.dropdownSep} />
+              {highlightEntries.map(([name, data]) => (
+                <button
+                  key={name}
+                  className={`${styles.dropdownItem} ${options.highlightType === name ? styles.selected : ''}`}
+                  onClick={() => selectHighlightType(name)}
+                >
+                  <span
+                    className={styles.highlightDot}
+                    style={{ backgroundColor: data.color }}
+                  />
+                  {name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           className={`${styles.button} ${
             options.hasAttachments && styles.active
