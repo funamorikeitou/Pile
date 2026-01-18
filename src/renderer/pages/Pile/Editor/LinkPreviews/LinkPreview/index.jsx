@@ -51,10 +51,11 @@ export default function LinkPreview({ url }) {
           <iframe
             width="100%"
             height="auto"
-            src={`https://www.youtube.com/embed/${match[2]}?si=w-plylbVGS7t7O4b"`}
+            src={`https://www.youtube-nocookie.com/embed/${match[2]}`}
             title="YouTube video player"
             frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
           />
         </div>

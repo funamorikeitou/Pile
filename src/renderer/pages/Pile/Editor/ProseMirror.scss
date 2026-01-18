@@ -24,6 +24,31 @@
     ul,
     ol {
         padding: 0 1rem;
+        padding-left: 1.5rem;
+        margin: 0.5rem 0;
+    }
+
+    ul:not([data-type='taskList']) {
+        list-style-type: disc !important;
+        list-style-position: outside;
+    }
+
+    ol {
+        list-style-type: decimal !important;
+        list-style-position: outside;
+    }
+
+    li {
+        margin: 0.25rem 0;
+        display: list-item !important;
+    }
+
+    ul:not([data-type='taskList']) > li {
+        list-style-type: disc !important;
+    }
+
+    ol > li {
+        list-style-type: decimal !important;
     }
 
     ul[data-type='taskList'] {
