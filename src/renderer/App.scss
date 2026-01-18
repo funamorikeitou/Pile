@@ -342,7 +342,7 @@ body {
   color: var(--primary);
 }
 
-li {
+li:not(.ProseMirror li) {
   list-style: none;
 }
 

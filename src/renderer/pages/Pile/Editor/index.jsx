@@ -164,17 +164,11 @@ const Editor = memo(
       editable: editable,
       content: post?.content || '',
       onUpdate: ({ editor }) => {
-        isUserTyping.current = true;
         setContent(editor.getHTML());
-        // Reset after a short delay
-        setTimeout(() => {
-          isUserTyping.current = false;
-        }, 100);
       },
     });
 
     const elRef = useRef();
-    const isUserTyping = useRef(false);
     const [deleteStep, setDeleteStep] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [isAIResponding, setIsAiResponding] = useState(false);
@@ -282,8 +276,6 @@ const Editor = memo(
     useEffect(() => {
       if (editor) {
         if (!post) return;
-        // Don't update content while user is actively typing
-        if (isUserTyping.current) return;
         if (post?.content != editor.getHTML()) {
           editor.commands.setContent(post.content);
         }
@@ -341,7 +333,7 @@ const Editor = memo(
           <div className={styles.uneditable}>
             <div
               key="uneditable"
-              className={`${styles.editor} ${isBig() && styles.editorBig}`}
+              className={`${styles.editor} ${isBig() && styles.editorBig} ProseMirror`}
               dangerouslySetInnerHTML={{ __html: previewContent }}
             />
           </div>
