@@ -220,7 +220,7 @@ export default function Settings() {
   const handleCustomColorChange = (e) => {
     const value = e.target.value;
     setCustomColor(value);
-    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+    if (/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value)) {
       setHighlightColor(value);
     }
   };
