@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import styles from './Home.module.scss';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { usePilesContext } from '../../context/PilesContext';
 import DeletePile from './DeletePile';
 import Logo from './logo';
@@ -18,7 +18,8 @@ const quotes = [
 ];
 
 export default function Home() {
-  const { piles } = usePilesContext();
+  const { piles, addExistingPile } = usePilesContext();
+  const navigate = useNavigate();
   const [folderExists, setFolderExists] = useState(false);
   const [quote, setQuote] = useState(quotes[0]);
 
@@ -26,6 +27,24 @@ export default function Home() {
     const quote = quotes[Math.floor(Math.random() * quotes.length)];
     setQuote(quote);
   }, []);
+
+  useEffect(() => {
+    const handler = (path: string) => {
+      const name = addExistingPile(path);
+      if (name) {
+        navigate('/pile/' + name);
+      }
+    };
+
+    window.electron.ipc.on('selected-directory', handler);
+    return () => {
+      window.electron.ipc.removeAllListeners('selected-directory');
+    };
+  }, [addExistingPile, navigate]);
+
+  const handleOpenExisting = () => {
+    window.electron.ipc.sendMessage('open-file-dialog');
+  };
 
   const renderPiles = () => {
     if (piles.length == 0)
@@ -75,7 +94,10 @@ export default function Home() {
           Create a new pile →
         </Link>
 
-        <div className={styles.or}>or open an existing pile</div>
+        <div className={styles.or}>or</div>
+        <div className={styles.openExisting} onClick={handleOpenExisting}>
+          Open an existing pile →
+        </div>
 
         <div className={styles.piles}>{renderPiles()}</div>
 

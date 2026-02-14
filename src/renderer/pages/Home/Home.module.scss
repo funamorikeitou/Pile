@@ -143,9 +143,36 @@
 .or {
   font-size: 0.75em;
   color: var(--secondary);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   text-align: center;
   user-select: none;
+}
+
+.openExisting {
+  -webkit-app-region: none;
+  display: block;
+  text-align: center;
+  font-size: 0.8em;
+  padding: 10px 18px;
+  font-weight: 500;
+  background: var(--bg);
+  color: var(--primary);
+  border-radius: 90px;
+  margin: 0 auto;
+  margin-bottom: 32px;
+  user-select: none;
+  transition: all ease-in-out 120ms;
+
+  &:hover {
+    cursor: pointer;
+    background: var(--base);
+    color: var(--base-text);
+  }
+
+  &:active {
+    color: var(--secondary);
+    background: var(--bg);
+  }
 }
 
 .noPiles {

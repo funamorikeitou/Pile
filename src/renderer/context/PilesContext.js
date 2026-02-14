@@ -36,7 +36,7 @@ export const PilesContextProvider = ({ children }) => {
     const currentPileName = location.pathname.split(/[/\\]/).pop();
 
     changeCurrentPile(currentPileName);
-  }, [location.pathname]);
+  }, [location.pathname, piles]);
 
   const getConfig = async () => {
     const configFilePath = window.electron.getConfigPath();
@@ -97,6 +97,24 @@ export const PilesContextProvider = ({ children }) => {
     return name;
   };
 
+  const addExistingPile = (selectedPath) => {
+    if (!selectedPath) return null;
+
+    const name = selectedPath.split(/[/\\]/).pop();
+    if (!name) return null;
+
+    // Don't add if already registered
+    if (piles.find((p) => p.path === selectedPath || p.name === name)) {
+      return name;
+    }
+
+    const newPiles = [{ name, path: selectedPath }, ...piles];
+    setPiles(newPiles);
+    writeConfig(newPiles);
+
+    return name;
+  };
+
   const changeCurrentPile = (name) => {
     if (!piles || piles.length == 0) return;
     const pile = piles.find((p) => p.name == name);
@@ -143,6 +161,7 @@ export const PilesContextProvider = ({ children }) => {
     piles,
     getCurrentPilePath,
     createPile,
+    addExistingPile,
     currentPile,
     deletePile,
     currentTheme,
