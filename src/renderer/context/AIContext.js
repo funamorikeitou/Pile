@@ -123,16 +123,14 @@ export const AIContextProvider = ({ children }) => {
     [prompt]
   );
 
-  const checkApiKeyValidity = async () => {
-    // TODO: Add regex for OpenAPI and Ollama API keys
-    const key = await window.electron.ipc.invoke('get-ai-key');
-    
-    if (key !== null) {
+  const checkApiKeyValidity = useCallback(async () => {
+    if (pileAIProvider === 'ollama') {
       return true;
     }
 
-    return false;
-  }
+    const key = await window.electron.ipc.invoke('get-ai-key');
+    return key !== null;
+  }, [pileAIProvider]);
 
   const AIContextValue = {
     ai,
