@@ -130,34 +130,39 @@ const Editor = memo(
       ],
       editorProps: {
         handlePaste: function (view, event, slice) {
-          const items = Array.from(event.clipboardData?.items || []);
-          let imageHandled = false; // flag to track if an image was handled
+          // If clipboard has text content, let TipTap handle it normally
+          const hasText =
+            event.clipboardData?.getData('text/plain') ||
+            event.clipboardData?.getData('text/html');
+          if (hasText) return false;
 
-          if (items) {
-            items.forEach((item) => {
-              // Check if the item type is an image
-              if (item.type && item.type.indexOf('image') === 0) {
-                handleDataTransferItem(item);
-                imageHandled = true;
-              }
-            });
+          // Only handle image-only pastes (e.g. screenshots, copied images)
+          const items = Array.from(event.clipboardData?.items || []);
+          for (const item of items) {
+            if (item.type && item.type.indexOf('image') === 0) {
+              handleDataTransferItem(item);
+              return true;
+            }
           }
-          return imageHandled;
+          return false;
         },
         handleDrop: function (view, event, slice, moved) {
-          let imageHandled = false; // flag to track if an image was handled
           if (
             !moved &&
             event.dataTransfer &&
             event.dataTransfer.files &&
             event.dataTransfer.files[0]
           ) {
-            // if dropping external files
             const files = Array.from(event.dataTransfer.files);
-            files.forEach(handleFile);
-            return imageHandled; // handled
+            const imageFiles = files.filter(
+              (f) => f.type && f.type.indexOf('image') === 0
+            );
+            if (imageFiles.length > 0) {
+              imageFiles.forEach(handleFile);
+              return true;
+            }
           }
-          return imageHandled; // not handled use default behaviour
+          return false;
         },
       },
       autofocus: true,
