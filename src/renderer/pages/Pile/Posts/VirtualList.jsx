@@ -2,7 +2,6 @@ import { useCallback, useState, memo } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { motion } from 'framer-motion';
 import { useTimelineContext } from 'renderer/context/TimelineContext';
-import NewPost from '../NewPost';
 import Post from './Post';
 import Scrollbar from './Scrollbar';
 
@@ -21,8 +20,6 @@ const PostItem = memo(({ postPath, post }) => {
   );
 });
 
-const MemoizedNewPost = memo(() => <NewPost />);
-
 const VirtualTimeline = memo(({ data }) => {
   const { virtualListRef, setVisibleIndex } = useTimelineContext();
   const [isScrolling, setIsScrolling] = useState(false);
@@ -32,11 +29,6 @@ const VirtualTimeline = memo(({ data }) => {
   }, [setVisibleIndex]);
 
   const renderItem = useCallback((index, entry) => {
-    // Only render NewPost at the very top
-    if (index === 0) {
-      return <MemoizedNewPost />;
-    }
-
     const [postPath, post] = entry;
     return (
       <PostItem
@@ -47,7 +39,6 @@ const VirtualTimeline = memo(({ data }) => {
   }, []);
 
   const getKey = useCallback((index, entry) => {
-    if (index === 0) return 'new-post';
     const [postPath, post] = entry;
     return `${postPath}-${post.updatedAt}`;
   }, []);

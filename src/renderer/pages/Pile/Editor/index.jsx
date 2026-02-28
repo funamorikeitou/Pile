@@ -123,27 +123,46 @@ const Editor = memo(
         Placeholder.configure({
           placeholder: isAI ? 'AI is thinking...' : 'What are you thinking?',
         }),
-        CharacterCount.configure({
-          limit: 10000,
-        }),
+        CharacterCount,
         EnterSubmitExtension,
       ],
       editorProps: {
         handlePaste: function (view, event, slice) {
-          // If clipboard has text content, let TipTap handle it normally
+          const items = Array.from(event.clipboardData?.items || []);
+
           const hasText =
             event.clipboardData?.getData('text/plain') ||
-            event.clipboardData?.getData('text/html');
-          if (hasText) return false;
+            event.clipboardData?.getData('text/html') ||
+            items.some((item) => item.kind === 'string');
 
-          // Only handle image-only pastes (e.g. screenshots, copied images)
-          const items = Array.from(event.clipboardData?.items || []);
-          for (const item of items) {
-            if (item.type && item.type.indexOf('image') === 0) {
-              handleDataTransferItem(item);
-              return true;
+          if (!hasText) {
+            // Pure image paste — exclude image/tiff which macOS includes
+            // alongside text copies (to avoid swallowing the text).
+            for (const item of items) {
+              if (
+                item.kind === 'file' &&
+                item.type &&
+                item.type.startsWith('image/') &&
+                item.type !== 'image/tiff'
+              ) {
+                handleDataTransferItem(item);
+                return true;
+              }
             }
+            return false;
           }
+
+          // Insert the pre-parsed slice directly and return true so that
+          // TipTap's paste rules plugin is never invoked. Paste rules for
+          // Bold, Heading, and BulletList can conflict on markdown-heavy
+          // content (e.g. lines starting with `*   **bold**`), causing the
+          // paste to silently fail.
+          if (slice && slice.content.size > 0) {
+            const { from, to } = view.state.selection;
+            view.dispatch(view.state.tr.replaceRange(from, to, slice));
+            return true;
+          }
+
           return false;
         },
         handleDrop: function (view, event, slice, moved) {

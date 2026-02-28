@@ -22,8 +22,8 @@ export default function Posts() {
     const onlyParentEntries = [];
     const estimatedSize = Math.floor(index.size * 0.7); // Assuming ~70% are parent entries
 
-    onlyParentEntries.length = estimatedSize + 1; // +1 for NewPost
-    let i = 1; // Start at 1 to leave space for NewPost
+    onlyParentEntries.length = estimatedSize;
+    let i = 0;
 
     for (const [key, metadata] of index) {
       if (!metadata.isReply) {
@@ -32,12 +32,7 @@ export default function Posts() {
       }
     }
 
-    onlyParentEntries[0] = [
-      'NewPost',
-      { height: 150, hash: Date.now().toString() },
-    ];
-    onlyParentEntries.length = i; // Trim any excess pre-allocated space
-
+    onlyParentEntries.length = i;
     setData(onlyParentEntries);
   }, [index]);
 
@@ -65,7 +60,10 @@ export default function Posts() {
 
   return (
     <div className={styles.posts}>
-      <AnimatePresence>{renderList}</AnimatePresence>
+      <NewPost />
+      <div className={styles.scrollArea}>
+        <AnimatePresence>{renderList}</AnimatePresence>
+      </div>
       <div className={styles.gradient}></div>
     </div>
   );

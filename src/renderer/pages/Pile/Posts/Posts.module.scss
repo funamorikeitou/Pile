@@ -1,5 +1,6 @@
 .posts {
-  display: block;
+  display: flex;
+  flex-direction: column;
   position: absolute;
   bottom: 0px;
   right: 4px;
@@ -20,6 +21,12 @@
     z-index: 1;
     pointer-events: none;
   }
+}
+
+.scrollArea {
+  flex: 1;
+  min-height: 0;
+  position: relative;
 }
 
 .row {
