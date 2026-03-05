@@ -589,3 +589,20 @@ input {
     background: var(--base-hover);
   }
 }
+
+.syncRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.syncStatus {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--secondary);
+  min-height: 16px;
+}
+
+.syncError {
+  color: #ff453a;
+}

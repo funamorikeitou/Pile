@@ -69,6 +69,13 @@ const electronHandler = {
   settingsGet: (key: string) => ipcRenderer.invoke('electron-store-get', key),
   settingsSet: (key: string, value: string) =>
     ipcRenderer.invoke('electron-store-set', key, value),
+  gitSetup: (args: { pilePath: string; repoUrl: string; pat: string }) =>
+    ipcRenderer.invoke('git-setup', args),
+  gitSync: (args: { pilePath: string; pat: string; repoUrl: string }) =>
+    ipcRenderer.invoke('git-sync', args),
+  gitGetPAT: (pileName: string) => ipcRenderer.invoke('git-get-pat', pileName),
+  gitSetPAT: (args: { pileName: string; pat: string }) =>
+    ipcRenderer.invoke('git-set-pat', args),
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

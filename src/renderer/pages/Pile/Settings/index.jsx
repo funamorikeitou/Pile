@@ -8,6 +8,7 @@ import {
   usePilesContext,
 } from 'renderer/context/PilesContext';
 import { useHighlightsContext } from 'renderer/context/HighlightsContext';
+import { useGitContext } from 'renderer/context/GitContext';
 import AISettingTabs from './AISettingsTabs';
 import { useIndexContext } from 'renderer/context/IndexContext';
 import {
@@ -107,7 +108,17 @@ export default function Settings() {
     baseUrl,
   } = useAIContext();
   const [APIkey, setCurrentKey] = useState('');
-  const { currentTheme, setTheme } = usePilesContext();
+  const { currentTheme, setTheme, currentPile, updateCurrentPile } =
+    usePilesContext();
+  const { syncStatus, lastSynced, syncError, setupSync, syncNow, getPAT } =
+    useGitContext();
+
+  const [githubEnabled, setGithubEnabled] = useState(
+    currentPile?.githubSyncEnabled ?? false
+  );
+  const [githubRepo, setGithubRepo] = useState(currentPile?.githubRepo ?? '');
+  const [githubPAT, setGithubPAT] = useState('');
+  const [setupLoading, setSetupLoading] = useState(false);
   const {
     highlights,
     createHighlight,
@@ -137,7 +148,32 @@ export default function Settings() {
 
   useEffect(() => {
     retrieveKey();
+    getPAT().then((pat) => {
+      if (pat) setGithubPAT(pat);
+    });
   }, []);
+
+  const handleToggleGithubSync = (e) => {
+    const enabled = e.target.checked;
+    setGithubEnabled(enabled);
+    updateCurrentPile({ ...currentPile, githubSyncEnabled: enabled });
+  };
+
+  const handleConnectAndPush = async () => {
+    if (!githubRepo) return;
+    setSetupLoading(true);
+    await setupSync(githubRepo, githubPAT);
+    setSetupLoading(false);
+  };
+
+  const formatLastSynced = () => {
+    if (!lastSynced) return null;
+    const seconds = Math.floor((Date.now() - lastSynced.getTime()) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    return `${Math.floor(minutes / 60)}h ago`;
+  };
 
   const handleOnChangeBaseUrl = (e) => {
     setBaseUrl(e.target.value);
@@ -396,6 +432,67 @@ export default function Settings() {
               onChange={handleOnChangePrompt}
             />
           </fieldset>
+          <fieldset className={styles.Fieldset}>
+            <label className={styles.Label}>GitHub Sync</label>
+            <div className={styles.switch}>
+              <label className={styles.Label}>
+                Auto-sync to GitHub
+              </label>
+              <label className={styles.switchRoot}>
+                <input
+                  type="checkbox"
+                  checked={githubEnabled}
+                  onChange={handleToggleGithubSync}
+                />
+                <span className={styles.slider}></span>
+              </label>
+            </div>
+            <input
+              className={styles.Input}
+              style={{ marginTop: 8 }}
+              type="text"
+              placeholder="https://github.com/user/repo.git"
+              value={githubRepo}
+              onChange={(e) => setGithubRepo(e.target.value)}
+            />
+            <input
+              className={styles.Input}
+              style={{ marginTop: 8 }}
+              type="password"
+              placeholder="Personal Access Token (optional — uses system git credentials if blank)"
+              value={githubPAT}
+              onChange={(e) => setGithubPAT(e.target.value)}
+            />
+            <div className={styles.syncRow}>
+              <button
+                className={styles.Button}
+                style={{ marginTop: 8 }}
+                onClick={handleConnectAndPush}
+                disabled={setupLoading || !githubRepo}
+              >
+                {setupLoading ? 'Connecting...' : 'Connect & Push'}
+              </button>
+              {githubEnabled && (
+                <button
+                  className={styles.Button}
+                  style={{ marginTop: 8 }}
+                  onClick={syncNow}
+                  disabled={syncStatus === 'syncing'}
+                >
+                  {syncStatus === 'syncing' ? 'Syncing...' : 'Sync Now'}
+                </button>
+              )}
+            </div>
+            <div className={styles.syncStatus}>
+              {syncStatus === 'success' && lastSynced && (
+                <span>Last synced: {formatLastSynced()}</span>
+              )}
+              {syncStatus === 'error' && syncError && (
+                <span className={styles.syncError}>{syncError}</span>
+              )}
+            </div>
+          </fieldset>
+
           <div
             style={{
               display: 'flex',

@@ -1,0 +1,48 @@
+.indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 6px;
+  height: 32px;
+  -webkit-app-region: none;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.idle {
+    background: var(--secondary);
+    opacity: 0.3;
+  }
+
+  &.syncing {
+    background: #ffd60a;
+    opacity: 0.9;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  &.success {
+    background: #32d74b;
+    opacity: 0.85;
+  }
+
+  &.error {
+    background: #ff453a;
+    opacity: 0.85;
+  }
+}
+
+.label {
+  font-size: 11px;
+  color: var(--secondary);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}

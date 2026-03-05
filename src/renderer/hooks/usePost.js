@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePilesContext } from 'renderer/context/PilesContext';
 import * as fileOperations from '../utils/fileOperations';
 import { useIndexContext } from 'renderer/context/IndexContext';
+import { useGitContext } from 'renderer/context/GitContext';
 import {
   getPost,
   cycleColorCreator,
@@ -45,6 +46,11 @@ function usePost(
   const { currentPile, getCurrentPilePath } = usePilesContext();
   const { addIndex, removeIndex, refreshIndex, updateIndex, prependIndex } =
     useIndexContext();
+  const { scheduleSyncAfterSave } = useGitContext();
+  const scheduleSyncRef = useRef(scheduleSyncAfterSave);
+  useEffect(() => {
+    scheduleSyncRef.current = scheduleSyncAfterSave;
+  });
   const [updates, setUpdates] = useState(0);
   const [path, setPath] = useState(); // absolute path
   const [post, setPost] = useState({ ...defaultPost });
@@ -105,6 +111,7 @@ function usePost(
         prependIndex(postRelativePath, data); // Add the file to the index
         addIndex(postRelativePath, parentPostPath); // Add the file to the index
         window.electron.ipc.invoke('tags-sync', saveToPath); // Sync tags
+        scheduleSyncRef.current();
         console.timeEnd('post-time');
       } catch (error) {
         console.error(`Error writing file: ${saveToPath}`);

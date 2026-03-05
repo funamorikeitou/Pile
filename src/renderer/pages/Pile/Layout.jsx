@@ -14,6 +14,8 @@ import { useTimelineContext } from 'renderer/context/TimelineContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import InstallUpdate from './InstallUpdate';
 import Chat from './Chat';
+import { GitContextProvider } from 'renderer/context/GitContext';
+import SyncIndicator from './SyncIndicator';
 
 export default function PileLayout({ children }) {
   const { pileName } = useParams();
@@ -49,6 +51,7 @@ export default function PileLayout({ children }) {
   );
 
   return (
+    <GitContextProvider>
     <div className={`${styles.frame} ${themeStyles} ${osStyles}`}>
       <div className={styles.bg}></div>
       <div className={styles.main}>
@@ -79,6 +82,7 @@ export default function PileLayout({ children }) {
             <div className={styles.right}>
               <Toasts />
               <InstallUpdate />
+              <SyncIndicator />
               <Chat />
               <Search />
               <Settings />
@@ -94,5 +98,6 @@ export default function PileLayout({ children }) {
       <div id="reflections"></div>
       <div id="dialog"></div>
     </div>
+    </GitContextProvider>
   );
 }
